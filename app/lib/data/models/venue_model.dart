@@ -16,7 +16,7 @@ class VenueModel {
   factory VenueModel.fromJson(Map<String, dynamic> json) => VenueModel(
         id: json['id'] as String,
         name: json['name'] as String,
-        description: json['description'] as String,
+        description: json['description'] as String? ?? '',
         sport: json['sport'] as String,
         address: json['address'] as String,
       );

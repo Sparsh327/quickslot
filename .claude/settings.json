@@ -3,7 +3,10 @@
     "allow": [
       "Bash(nvm use *)",
       "Bash(npm install *)",
-      "Bash(npm --version)"
+      "Bash(npm --version)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }
