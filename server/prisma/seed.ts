@@ -1,6 +1,10 @@
+/// <reference types="node" />
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 const VENUES = [
   {
