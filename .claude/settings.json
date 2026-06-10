@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(nvm use *)",
+      "Bash(npm install *)",
+      "Bash(npm --version)"
+    ]
+  }
+}
