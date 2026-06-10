@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: quickslot-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install && npm run db:generate && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_ENV
+        value: production

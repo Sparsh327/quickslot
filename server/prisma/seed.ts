@@ -69,6 +69,12 @@ function getHourlySlots(): Array<{ startTime: string; endTime: string }> {
 async function main() {
   console.log('Seeding database...');
 
+  const existing = await prisma.venue.findFirst();
+  if (existing) {
+    console.log('Already seeded — skipping.');
+    return;
+  }
+
   for (const user of USERS) {
     await prisma.user.upsert({
       where: { id: user.id },
