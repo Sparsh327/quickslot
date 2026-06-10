@@ -1,7 +1,5 @@
 class NetworkConstants {
-  // Android emulator → host machine localhost.
-  // Change to your machine's LAN IP when testing on a physical device.
-  static const String baseUrl = 'http://10.0.2.2:3000';
+  static const String baseUrl = 'https://quickslot-58qg.onrender.com';
 
   static const String users = '/users';
   static const String venues = '/venues';
