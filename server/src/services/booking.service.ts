@@ -1,6 +1,7 @@
 import { prisma } from '../lib/db';
 import { AppError } from '../middleware/errorHandler';
 
+
 export async function createBooking(slotId: string, userId: string) {
   const [slot, user] = await Promise.all([
     prisma.slot.findUnique({ where: { id: slotId } }),
@@ -38,6 +39,21 @@ export async function createBooking(slotId: string, userId: string) {
           },
         },
       },
+    });
+  });
+}
+
+export async function cancelBooking(bookingId: string, userId: string) {
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+
+  if (!booking) throw new AppError(404, 'Booking not found');
+  if (booking.userId !== userId) throw new AppError(403, 'You can only cancel your own bookings');
+
+  await prisma.$transaction(async (tx) => {
+    await tx.booking.delete({ where: { id: bookingId } });
+    await tx.slot.update({
+      where: { id: booking.slotId },
+      data: { status: 'AVAILABLE' },
     });
   });
 }

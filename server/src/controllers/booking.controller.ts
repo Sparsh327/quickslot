@@ -24,3 +24,19 @@ export async function createBooking(
     next(err);
   }
 }
+
+export async function cancelBooking(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    await bookingService.cancelBooking(
+      String(req.params.id),
+      res.locals.userId as string
+    );
+    res.status(200).json({ data: { message: 'Booking cancelled' } });
+  } catch (err) {
+    next(err);
+  }
+}

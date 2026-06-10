@@ -5,3 +5,4 @@ import * as bookingController from '../controllers/booking.controller';
 export const bookingRouter = Router();
 
 bookingRouter.post('/', requireUser, bookingController.createBooking);
+bookingRouter.delete('/:id', requireUser, bookingController.cancelBooking);
