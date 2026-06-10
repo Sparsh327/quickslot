@@ -1,6 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import * as userService from '../services/user.service';
 
+export async function listUsers(
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const users = await userService.listUsers();
+    res.json({ data: users });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getUserBookings(
   req: Request,
   res: Response,

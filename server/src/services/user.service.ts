@@ -1,6 +1,10 @@
 import { prisma } from '../lib/db';
 import { AppError } from '../middleware/errorHandler';
 
+export async function listUsers() {
+  return prisma.user.findMany({ orderBy: { name: 'asc' } });
+}
+
 export async function getUserBookings(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new AppError(404, 'User not found');
