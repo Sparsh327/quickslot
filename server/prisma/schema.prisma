@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String    @id
+  name     String
+  bookings Booking[]
+}
+
+model Venue {
+  id          String  @id @default(cuid())
+  name        String
+  description String
+  sport       String
+  address     String
+  slots       Slot[]
+}
+
+model Slot {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id])
+  date      String   // YYYY-MM-DD
+  startTime String   // HH:mm  e.g. "06:00"
+  endTime   String   // HH:mm  e.g. "07:00"
+  status    String   @default("AVAILABLE") // AVAILABLE | BOOKED
+  booking   Booking?
+
+  @@unique([venueId, date, startTime])
+}
+
+model Booking {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  slotId    String   @unique
+  slot      Slot     @relation(fields: [slotId], references: [id])
+  createdAt DateTime @default(now())
+}
