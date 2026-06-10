@@ -46,9 +46,18 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
       listener: (context, state) {
         if (state.bookingSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Slot booked successfully!'),
-              backgroundColor: Color(0xFF27AE60),
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text('Slot booked successfully!'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF27AE60),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
           context.read<VenueDetailCubit>().clearBookingResult();
@@ -56,46 +65,96 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
         if (state.bookingError != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.bookingError!),
-              backgroundColor: Colors.red,
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Text(state.bookingError!),
+                ],
+              ),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
           context.read<VenueDetailCubit>().clearBookingResult();
         }
       },
       builder: (context, state) {
+        final isBadminton = state.venue?.sport == 'Badminton';
+        final sportColor =
+            isBadminton ? const Color(0xFF2980B9) : const Color(0xFF27AE60);
+        final sportColorLight =
+            isBadminton ? const Color(0xFF5DADE2) : const Color(0xFF2ECC71);
+
         return Scaffold(
-          backgroundColor: const Color(0xFFF5F7FA),
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  state.venue?.name ?? 'Slots',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18.sp,
-                    color: const Color(0xFF1A1A2E),
-                  ),
-                ),
-                if (state.venue != null)
-                  Text(
-                    state.venue!.sport,
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-                  ),
-              ],
-            ),
-          ),
+          backgroundColor: const Color(0xFFF0F2F8),
           body: Column(
             children: [
-              _DateRow(
-                dates: _dates,
-                selected: _selected,
-                onTap: _onDateTap,
+              Container(
+                padding: EdgeInsets.fromLTRB(0, 50.h, 0, 0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [sportColor, sportColorLight],
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.w),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios,
+                                color: Colors.white),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  state.venue?.name ?? 'Slots',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.sp,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                if (state.venue != null)
+                                  Text(
+                                    state.venue!.sport,
+                                    style: TextStyle(
+                                        fontSize: 12.sp,
+                                        color: Colors.white
+                                            .withValues(alpha: 0.8)),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    _DateRow(
+                      dates: _dates,
+                      selected: _selected,
+                      onTap: _onDateTap,
+                      activeColor: sportColor,
+                    ),
+                  ],
+                ),
               ),
-              Expanded(child: _SlotsBody(state: state, venueId: widget.venueId)),
+              Expanded(
+                child: _SlotsBody(
+                  state: state,
+                  venueId: widget.venueId,
+                  accentColor: sportColor,
+                ),
+              ),
             ],
           ),
         );
@@ -108,64 +167,68 @@ class _DateRow extends StatelessWidget {
   final List<DateTime> dates;
   final DateTime selected;
   final ValueChanged<DateTime> onTap;
-  const _DateRow(
-      {required this.dates, required this.selected, required this.onTap});
+  final Color activeColor;
+
+  const _DateRow({
+    required this.dates,
+    required this.selected,
+    required this.onTap,
+    required this.activeColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.symmetric(vertical: 12.h),
-      child: SizedBox(
-        height: 64.h,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          itemCount: dates.length,
-          separatorBuilder: (_, __) => SizedBox(width: 8.w),
-          itemBuilder: (_, i) {
-            final d = dates[i];
-            final isSelected = d.day == selected.day &&
-                d.month == selected.month &&
-                d.year == selected.year;
-            final isToday = d.day == DateTime.now().day &&
-                d.month == DateTime.now().month;
-            return GestureDetector(
-              onTap: () => onTap(d),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 52.w,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF6C63FF)
-                      : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      isToday ? 'Today' : DateFormat('EEE').format(d),
-                      style: TextStyle(
-                        fontSize: 10.sp,
-                        color: isSelected ? Colors.white70 : Colors.grey[500],
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      '${d.day}',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
+    return SizedBox(
+      height: 72.h,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
+        itemCount: dates.length,
+        separatorBuilder: (_, __) => SizedBox(width: 8.w),
+        itemBuilder: (_, i) {
+          final d = dates[i];
+          final isSelected = d.day == selected.day &&
+              d.month == selected.month &&
+              d.year == selected.year;
+          final isToday = d.day == DateTime.now().day &&
+              d.month == DateTime.now().month;
+          return GestureDetector(
+            onTap: () => onTap(d),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 52.w,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12.r),
               ),
-            );
-          },
-        ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    isToday ? 'Today' : DateFormat('EEE').format(d),
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      color: isSelected
+                          ? activeColor
+                          : Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    '${d.day}',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? activeColor : Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -174,32 +237,96 @@ class _DateRow extends StatelessWidget {
 class _SlotsBody extends StatelessWidget {
   final VenueDetailState state;
   final String venueId;
-  const _SlotsBody({required this.state, required this.venueId});
+  final Color accentColor;
+
+  const _SlotsBody({
+    required this.state,
+    required this.venueId,
+    required this.accentColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (state.status == ScreenStatus.loading || state.isBooking) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(color: accentColor),
+      );
     }
     if (state.status == ScreenStatus.failure) {
-      return Center(child: Text(state.errorMessage ?? 'Failed to load slots'));
+      return Center(
+          child: Text(state.errorMessage ?? 'Failed to load slots'));
     }
     if (state.slots.isEmpty) {
-      return const Center(child: Text('No slots for this date'));
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.event_busy, size: 56.sp,
+                color: Colors.grey[300]),
+            SizedBox(height: 12.h),
+            Text('No slots for this date',
+                style:
+                    TextStyle(fontSize: 15.sp, color: Colors.grey[500])),
+          ],
+        ),
+      );
     }
-    return GridView.builder(
-      padding: EdgeInsets.all(16.w),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 10.w,
-        mainAxisSpacing: 10.h,
-        childAspectRatio: 2.2,
-      ),
-      itemCount: state.slots.length,
-      itemBuilder: (_, i) => _SlotChip(
-        slot: state.slots[i],
-        onTap: () => _confirmBooking(context, state.slots[i], venueId),
-      ),
+
+    final available =
+        state.slots.where((s) => s.isAvailable).length;
+
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 4.h),
+          child: Row(
+            children: [
+              Text(
+                'Available Slots',
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1A1A2E),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding:
+                    EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Text(
+                  '$available open',
+                  style: TextStyle(
+                      fontSize: 11.sp,
+                      color: accentColor,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: GridView.builder(
+            padding: EdgeInsets.all(16.w),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 10.w,
+              mainAxisSpacing: 10.h,
+              childAspectRatio: 2.2,
+            ),
+            itemCount: state.slots.length,
+            itemBuilder: (_, i) => _SlotChip(
+              slot: state.slots[i],
+              accentColor: accentColor,
+              onTap: () =>
+                  _confirmBooking(context, state.slots[i], venueId),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -209,6 +336,8 @@ class _SlotsBody extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r)),
         title: const Text('Confirm Booking'),
         content: Text('Book ${slot.startTime} – ${slot.endTime}?'),
         actions: [
@@ -218,14 +347,16 @@ class _SlotsBody extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C63FF)),
+              backgroundColor: accentColor,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r)),
+            ),
             onPressed: () {
               Navigator.pop(ctx);
-              context
-                  .read<VenueDetailCubit>()
-                  .bookSlot(venueId, slot.id);
+              context.read<VenueDetailCubit>().bookSlot(venueId, slot.id);
             },
-            child: const Text('Book', style: TextStyle(color: Colors.white)),
+            child:
+                const Text('Book', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -236,7 +367,13 @@ class _SlotsBody extends StatelessWidget {
 class _SlotChip extends StatelessWidget {
   final SlotModel slot;
   final VoidCallback onTap;
-  const _SlotChip({required this.slot, required this.onTap});
+  final Color accentColor;
+
+  const _SlotChip({
+    required this.slot,
+    required this.onTap,
+    required this.accentColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -245,14 +382,30 @@ class _SlotChip extends StatelessWidget {
       onTap: available ? onTap : null,
       child: Container(
         decoration: BoxDecoration(
-          color: available ? const Color(0xFF6C63FF) : Colors.grey[200],
+          gradient: available
+              ? LinearGradient(
+                  colors: [accentColor, accentColor.withValues(alpha: 0.75)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: available ? null : Colors.grey[200],
           borderRadius: BorderRadius.circular(10.r),
+          boxShadow: available
+              ? [
+                  BoxShadow(
+                    color: accentColor.withValues(alpha: 0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  )
+                ]
+              : null,
         ),
         child: Center(
           child: Text(
             slot.startTime,
             style: TextStyle(
-              fontSize: 13.sp,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w600,
               color: available ? Colors.white : Colors.grey[400],
               decoration: available ? null : TextDecoration.lineThrough,
